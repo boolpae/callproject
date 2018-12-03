@@ -1,0 +1,16 @@
+<SipCallDump>
+	<PacketDump>
+		<Device>enp3s0f3</Device>
+		<Folder>/home/stt/Dev/cppsipstack/SipCallDump/packet_dump</Folder>
+		<PacketSnapLen>2048</PacketSnapLen>
+		<PacketReadTimeout>100</PacketReadTimeout>
+	</PacketDump>
+	<Rtp>
+		<RecvTimeout>30</RecvTimeout>
+	</Rtp>
+	<Log>
+		<Folder>/home/stt/Dev/cppsipstack/SipCallDump/sipcalldump</Folder>
+		<Level Debug="true" Info="true" Network="true" />
+		<MaxSize>10000000</MaxSize>
+	</Log>
+</SipCallDump>
