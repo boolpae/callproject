@@ -28,11 +28,11 @@
 
 /**
  * @ingroup SipCallDump
- * @brief 덤프된 패킷을 파싱하여 SIP, RTP 패킷을 구분지어 해당 queue로 나누어 저장한다.
+ * @brief SignalQueue로부터 item을 가져와 처리한다. Invite 시작 시 전용 Thread 생성
  * @param lpParameter 
  * @returns 0 을 리턴한다.
  */
-THREAD_API PacketDivideThread( LPVOID lpParameter )
+THREAD_API SignalHandleThread( LPVOID lpParameter )
 {
 	PacketItem *item = nullptr;
 	uint8_t *pszData = nullptr;
@@ -45,10 +45,10 @@ THREAD_API PacketDivideThread( LPVOID lpParameter )
 
 	while( gbStop == false )
 	{
-		// gclsPacketQueue에서 패킷을 가져온다.
-		// SIP 인지 RTP 인지 판단하여 Type에 해당하는 queue에 저장
+		// gclsSignalPacketQueue에서 패킷을 가져온다.
+		// SIP패킷 분석 및 신규 호 시작 시엔 전용 쓰레드 생성
 
-		if ( item = gclsPacketQueue.pop() )
+		if ( item = gclsSignalPacketQueue.pop() )
 		{
 			pszData = item->getData();
 			
@@ -70,16 +70,7 @@ THREAD_API PacketDivideThread( LPVOID lpParameter )
 			pszUdpBody = ( char * )( pszData + iIpPos + iIpHeaderLen + 8 );
 			iUdpBodyLen = item->getLen() - ( iIpPos + iIpHeaderLen + 8 );
 
-			if( IsRtpPacket( pszUdpBody, iUdpBodyLen ) )
-			{
-				// gclsRtpMap.Insert( psttHeader, pszData, psttIp4Header, psttUdpHeader );
-				gclsVoicePacketQueue.push( item );
-			}
-			else if( IsSipPacket( pszUdpBody, iUdpBodyLen ) )
-			{
-				// gclsCallMap.Insert( psttPcap, psttHeader, pszData, pszUdpBody, iUdpBodyLen );
-				gclsSignalPacketQueue.push( item );
-			}
+            // 이미 처리할 item은 SIP Packet으로 간주해야한다.
 
 		}
 		else
@@ -100,7 +91,7 @@ FUNC_END:
  * @brief 패킷 덤프 쓰레드를 시작한다.
  * @returns 성공하면 true 를 리턴하고 실패하면 false 를 리턴한다.
  */
-bool StartPacketDivideThread( )
+bool StartSignalHandleThread( )
 {
-	return StartThread( "PacketDivideThread", PacketDivideThread, NULL );
+	return StartThread( "StartSignalHandleThread", SignalHandleThread, NULL );
 }

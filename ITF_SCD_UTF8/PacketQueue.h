@@ -27,11 +27,16 @@ class PacketQueue {
         virtual ~PacketQueue();
 
         bool push(int len, uint8_t *data);
+        bool push(PacketItem *item);
         PacketItem* pop();
+
+        int getSize() { return m_que.size(); }
     private:
         PACKET_QUEUE m_que;
 };
 
 extern PacketQueue gclsPacketQueue;
+extern PacketQueue gclsSignalPacketQueue;
+extern PacketQueue gclsVoicePacketQueue;
 
 #endif // _PACKET_QUEUE_H_

@@ -32,7 +32,7 @@
  * @param lpParameter 
  * @returns 0 을 리턴한다.
  */
-THREAD_API PacketDivideThread( LPVOID lpParameter )
+THREAD_API VoicePacketDivideThread( LPVOID lpParameter )
 {
 	PacketItem *item = nullptr;
 	uint8_t *pszData = nullptr;
@@ -45,10 +45,9 @@ THREAD_API PacketDivideThread( LPVOID lpParameter )
 
 	while( gbStop == false )
 	{
-		// gclsPacketQueue에서 패킷을 가져온다.
-		// SIP 인지 RTP 인지 판단하여 Type에 해당하는 queue에 저장
+		// gclsVoicePacketQueue 패킷을 가져온다.
 
-		if ( item = gclsPacketQueue.pop() )
+		if ( item = gclsVoicePacketQueue.pop() )
 		{
 			pszData = item->getData();
 			
@@ -70,17 +69,7 @@ THREAD_API PacketDivideThread( LPVOID lpParameter )
 			pszUdpBody = ( char * )( pszData + iIpPos + iIpHeaderLen + 8 );
 			iUdpBodyLen = item->getLen() - ( iIpPos + iIpHeaderLen + 8 );
 
-			if( IsRtpPacket( pszUdpBody, iUdpBodyLen ) )
-			{
-				// gclsRtpMap.Insert( psttHeader, pszData, psttIp4Header, psttUdpHeader );
-				gclsVoicePacketQueue.push( item );
-			}
-			else if( IsSipPacket( pszUdpBody, iUdpBodyLen ) )
-			{
-				// gclsCallMap.Insert( psttPcap, psttHeader, pszData, pszUdpBody, iUdpBodyLen );
-				gclsSignalPacketQueue.push( item );
-			}
-
+            // 이미 Queue에 저장된 패킷은 RTP(Voice) 패킷으로 간주하고 처리한다.
 		}
 		else
 		{
@@ -100,7 +89,7 @@ FUNC_END:
  * @brief 패킷 덤프 쓰레드를 시작한다.
  * @returns 성공하면 true 를 리턴하고 실패하면 false 를 리턴한다.
  */
-bool StartPacketDivideThread( )
+bool StartVoicePacketDivideThread( )
 {
-	return StartThread( "PacketDivideThread", PacketDivideThread, NULL );
+	return StartThread( "VoicePacketDivideThread", VoicePacketDivideThread, NULL );
 }

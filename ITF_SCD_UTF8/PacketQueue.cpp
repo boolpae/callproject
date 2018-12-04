@@ -9,6 +9,9 @@
 
 PacketQueue gclsPacketQueue;
 
+PacketQueue gclsSignalPacketQueue;
+PacketQueue gclsVoicePacketQueue;
+
 PacketItem::PacketItem(int len, uint8_t *data)
 : m_len(len), m_data(nullptr)
 {
@@ -52,6 +55,18 @@ bool PacketQueue::push(int len, uint8_t *data)
 
     // std::cout << "[DEBUG] pushed item len(" << item->getLen() << ") queue size(" << m_que.size() << ")" << std::endl;
 	CLog::Print( LOG_DEBUG, "pushed item len(%d) queue size(%d)", item->getLen(), m_que.size() );
+
+    return true;
+}
+
+bool PacketQueue::push(PacketItem *item)
+{
+    if (!item) return false;
+
+    m_que.push( item );
+
+    // std::cout << "[DEBUG] pushed item len(" << item->getLen() << ") queue size(" << m_que.size() << ")" << std::endl;
+	CLog::Print( LOG_DEBUG, "pushed packet-item len(%d) queue size(%d)", item->getLen(), m_que.size() );
 
     return true;
 }
