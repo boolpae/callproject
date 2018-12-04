@@ -71,18 +71,4 @@ private:
 
 extern CRtpMap gclsRtpMap;
 
-
-typedef std::map< std::string, PacketQueue* > VOICE_MAP;
-
-class CVoiceMap
-{
-	public:
-	CVoiceMap();
-	virtual ~CVoiceMap();
-
-	void insert();
-
-	private:
-};
-
 #endif
