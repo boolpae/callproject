@@ -22,6 +22,7 @@
 #include "ServerUtility.h"
 #include "TimeUtility.h"
 #include "PacketQueue.h"
+#include "SipCallMap.h"
 
 
 // #include "MemoryDebug.h"
@@ -35,11 +36,6 @@
 THREAD_API SignalHandleThread( LPVOID lpParameter )
 {
 	PacketItem *item = nullptr;
-	uint8_t *pszData = nullptr;
-	int			iIpHeaderLen, iUdpBodyLen, iIpPos;
-	char		* pszUdpBody;
-	Ip4Header		* psttIp4Header;	// IPv4 Header
-	UdpHeader		* psttUdpHeader;	// UDP Header
 
 	CLog::Print( LOG_INFO, "%s is started", __FUNCTION__ );
 
@@ -50,27 +46,11 @@ THREAD_API SignalHandleThread( LPVOID lpParameter )
 
 		if ( item = gclsSignalPacketQueue.pop() )
 		{
-			pszData = item->getData();
-			
-			if( pszData[12] == 0x81 )
-			{
-				iIpPos = 18;		// VLAN
-			}
-			else if( pszData[12] == 0x08 )
-			{
-				iIpPos = 14;		// IP
-			}
-			else
-			{
-				continue;
-			}
-
-			psttIp4Header = ( Ip4Header * )( pszData + iIpPos );
-			psttUdpHeader = ( UdpHeader * )( pszData + iIpPos + iIpHeaderLen );
-			pszUdpBody = ( char * )( pszData + iIpPos + iIpHeaderLen + 8 );
-			iUdpBodyLen = item->getLen() - ( iIpPos + iIpHeaderLen + 8 );
-
             // 이미 처리할 item은 SIP Packet으로 간주해야한다.
+			gclsCallMap.Insert( item->m_psttPcap, &(item->m_sttHeader), item->m_data, item->m_pszUdpBody, item->m_iUdpBodyLen );
+			// 이 곳에서 처리한 item은 삭제한다.
+			delete item;
+			item = nullptr;
 
 		}
 		else

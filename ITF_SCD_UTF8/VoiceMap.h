@@ -15,9 +15,11 @@ class VoiceMap
 	VoiceMap();
 	virtual ~VoiceMap();
 
-	void insert();
+	void insert(PacketItem *item);
+	bool erase();
 
 	private:
+	VOICE_MAP m_clsMap;
 };
 
 

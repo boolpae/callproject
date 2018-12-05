@@ -28,34 +28,37 @@
 
 /**
  * @ingroup SipCallDump
- * @brief 덤프된 패킷을 파싱하여 SIP, RTP 패킷을 구분지어 해당 queue로 나누어 저장한다.
+ * @brief VoiceQueue로부터 item을 가져와 처리한다. 이 쓰레드는 Call-ID를 키로 생성되는 쓰레드이다.
  * @param lpParameter 
  * @returns 0 을 리턴한다.
  */
-THREAD_API VoicePacketDivideThread( LPVOID lpParameter )
+THREAD_API VoiceHandleThread( LPVOID lpParameter )
 {
 	PacketItem *item = nullptr;
-	std::string strCallId;
+    PacketQueue *que = (PacketQueue *)lpParameter;
 
 	CLog::Print( LOG_INFO, "%s is started", __FUNCTION__ );
 
 	while( gbStop == false )
 	{
-		// gclsVoicePacketQueue 패킷을 가져온다.
+		// gclsSignalPacketQueue에서 패킷을 가져온다.
+		// SIP패킷 분석 및 신규 호 시작 시엔 전용 쓰레드 생성
 
-		if ( item = gclsVoicePacketQueue.pop() )
+		if ( item = que->pop() )
 		{
-            // 이미 Queue에 저장된 패킷은 RTP(Voice) 패킷으로 간주하고 처리한다.
 
-			// 1. check RTPMAP - ip,port값을 이용하여 RTPMAP에 정보가 존재하는지 체크, 그리고 존재하지만 종료Flag가 있다면 폐기
-			// if ( gclsRtpMap.FindCallId(item->m_mapKey, strCallId) )
-			// {
+            // 이미 처리할 item은 SIP Packet으로 간주해야한다.
+			// 이 곳에서 처리한 item은 삭제한다.
+			delete item;
+			item = nullptr;
 
-			// }
 		}
 		else
 		{
 			MiliSleep(1);
+
+            // search Call-ID at RTPMAP
+            // if not exist break.
 		}
 	}
 
@@ -71,7 +74,7 @@ FUNC_END:
  * @brief 패킷 덤프 쓰레드를 시작한다.
  * @returns 성공하면 true 를 리턴하고 실패하면 false 를 리턴한다.
  */
-bool StartVoicePacketDivideThread( )
+bool StartVoiceHandleThread( PacketQueue* que )
 {
-	return StartThread( "VoicePacketDivideThread", VoicePacketDivideThread, NULL );
+	return StartThread( "StartVoiceHandleThread", VoiceHandleThread, (void *)que );
 }

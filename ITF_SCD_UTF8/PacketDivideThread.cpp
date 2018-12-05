@@ -35,11 +35,6 @@
 THREAD_API PacketDivideThread( LPVOID lpParameter )
 {
 	PacketItem *item = nullptr;
-	uint8_t *pszData = nullptr;
-	int			iIpHeaderLen, iUdpBodyLen, iIpPos;
-	char		* pszUdpBody;
-	Ip4Header		* psttIp4Header;	// IPv4 Header
-	UdpHeader		* psttUdpHeader;	// UDP Header
 
 	CLog::Print( LOG_INFO, "%s is started", __FUNCTION__ );
 
@@ -50,32 +45,13 @@ THREAD_API PacketDivideThread( LPVOID lpParameter )
 
 		if ( item = gclsPacketQueue.pop() )
 		{
-			pszData = item->getData();
-			
-			if( pszData[12] == 0x81 )
-			{
-				iIpPos = 18;		// VLAN
-			}
-			else if( pszData[12] == 0x08 )
-			{
-				iIpPos = 14;		// IP
-			}
-			else
-			{
-				continue;
-			}
-
-			psttIp4Header = ( Ip4Header * )( pszData + iIpPos );
-			psttUdpHeader = ( UdpHeader * )( pszData + iIpPos + iIpHeaderLen );
-			pszUdpBody = ( char * )( pszData + iIpPos + iIpHeaderLen + 8 );
-			iUdpBodyLen = item->getLen() - ( iIpPos + iIpHeaderLen + 8 );
-
-			if( IsRtpPacket( pszUdpBody, iUdpBodyLen ) )
+			PacketItem::Init(item);
+			if( IsRtpPacket( item->m_pszUdpBody, item->m_iUdpBodyLen ) )
 			{
 				// gclsRtpMap.Insert( psttHeader, pszData, psttIp4Header, psttUdpHeader );
 				gclsVoicePacketQueue.push( item );
 			}
-			else if( IsSipPacket( pszUdpBody, iUdpBodyLen ) )
+			else if( IsSipPacket( item->m_pszUdpBody, item->m_iUdpBodyLen ) )
 			{
 				// gclsCallMap.Insert( psttPcap, psttHeader, pszData, pszUdpBody, iUdpBodyLen );
 				gclsSignalPacketQueue.push( item );

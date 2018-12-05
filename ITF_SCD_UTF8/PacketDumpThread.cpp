@@ -96,7 +96,7 @@ THREAD_API PacketDumpThread( LPVOID lpParameter )
 			if( iUdpBodyLen <= MIN_UDP_BODY_SIZE ) continue;
 
 			// push packet to gclsQueue;
-			gclsPacketQueue.push(psttHeader->caplen, (uint8_t *)pszData);
+			gclsPacketQueue.push(psttPcap, psttHeader, (uint8_t *)pszData);
 
 #ifdef DISABLE_ORG
 			if( IsRtpPacket( pszUdpBody, iUdpBodyLen ) )

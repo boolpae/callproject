@@ -55,9 +55,6 @@ public:
 	time_t	m_iCancelTime;
 	time_t	m_iStartTime;
 	time_t	m_iByeTime;
-
-	std::string m_sSignalFilename;
-	std::string m_sVoiceFilename;
 };
 
 // key = SIP Call-ID

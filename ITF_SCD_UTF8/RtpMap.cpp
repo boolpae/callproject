@@ -187,3 +187,18 @@ void CRtpMap::GetKey( uint32_t iIp, uint16_t sPort, std::string & strKey )
 	snprintf( szKey, sizeof(szKey), "%x:%x", iIp, sPort );
 	strKey = szKey;
 }
+
+bool CRtpMap::FindCallId( std::string &strKey, std::string &strCallId )
+{
+	RTP_MAP::iterator itMap;
+	bool bRes = false;
+
+	itMap = m_clsMap.find( strKey );
+	if( itMap != m_clsMap.end() )
+	{
+		strCallId = itMap->second.m_strCallId;
+		bRes = true;
+	}
+
+	return bRes;
+}

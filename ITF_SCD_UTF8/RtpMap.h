@@ -61,6 +61,8 @@ public:
 
 	void SelectTimeout( STRING_LIST & clsCallIdList );
 
+	bool FindCallId( std::string &key, std::string &CallId );
+
 private:
 	void GetKey( const char * pszIp, int iPort, std::string & strKey );
 	void GetKey( uint32_t iIp, uint16_t sPort, std::string & strKey );

@@ -2,21 +2,36 @@
 #define _PACKET_QUEUE_H_
 
 #include <stdint.h>
+#include <pcap.h>
+
 #include <queue>
+
+#include "PacketHeader.h"
 
 class PacketItem {
     public:
-    PacketItem(int len, uint8_t *data);
+    PacketItem(pcap_t *psttPcap, struct pcap_pkthdr *psttHeader, uint8_t *data);
     virtual ~PacketItem();
+    static void Init(PacketItem *item);
 
-    int getLen() { return m_len; }
-    uint8_t* getData() { return m_data; }
+    // size_t m_hash;
+    std::string m_mapKey;
 
-    size_t m_hash;
-    
-    private:
     int m_len;
     uint8_t *m_data;
+
+	int			m_iIpHeaderLen, m_iUdpBodyLen, m_iIpPos;
+	char		* m_pszUdpBody;
+	Ip4Header		* m_psttIp4Header;	// IPv4 Header
+	UdpHeader		* m_psttUdpHeader;	// UDP Header
+
+    pcap_t	* m_psttPcap;
+    struct pcap_pkthdr m_sttHeader;
+
+    private:
+    static void GetKey( const char * pszIp, int iPort, std::string & strKey );
+	static void GetKey( uint32_t iIp, uint16_t sPort, std::string & strKey );
+
 };
 
 typedef std::queue< PacketItem* > PACKET_QUEUE;
@@ -26,7 +41,7 @@ class PacketQueue {
         PacketQueue();
         virtual ~PacketQueue();
 
-        bool push(int len, uint8_t *data);
+        bool push(pcap_t *psttPcap, struct pcap_pkthdr *psttHeader, uint8_t *data);
         bool push(PacketItem *item);
         PacketItem* pop();
 

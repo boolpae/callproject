@@ -6,20 +6,39 @@
 
 #include <string.h>
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
+// Main Queue
 PacketQueue gclsPacketQueue;
 
+// SignalQueue
 PacketQueue gclsSignalPacketQueue;
+
+// VoiceQueue
 PacketQueue gclsVoicePacketQueue;
 
-PacketItem::PacketItem(int len, uint8_t *data)
-: m_len(len), m_data(nullptr)
+PacketItem::PacketItem(pcap_t *psttPcap, struct pcap_pkthdr *psttHeader, uint8_t *data)
 {
-    std::hash< PacketItem* > hash_fn;
+    // std::hash< PacketItem* > hash_fn;
 
-    m_data = new uint8_t[len];
-    memcpy(m_data, data, len);
-    m_hash = hash_fn( this );
+    m_data = new uint8_t[psttHeader->caplen];
+
+    if (!m_data) {
+        m_data = nullptr;
+        m_len = 0;
+        return;
+    }
+    
+    m_psttPcap = psttPcap;
+    memset((void *)&m_sttHeader, 0, sizeof(struct pcap_pkthdr));
+    memcpy((void *)&m_sttHeader, (const void*)psttHeader, sizeof(struct pcap_pkthdr));
+
+    m_len = m_sttHeader.caplen;
+
+    memcpy(m_data, data, m_len);
+    // m_hash = hash_fn( this );
 
     // std::cout << "[DEBUG] maked item(len:" << m_len <<")" << std::endl;
 	CLog::Print( LOG_DEBUG, "maked item(len:%d)", m_len );
@@ -33,6 +52,49 @@ PacketItem::~PacketItem()
     m_data = nullptr;
 }
 
+void PacketItem::Init(PacketItem *item)
+{
+    if( item->m_data[12] == 0x81 )
+    {
+        item->m_iIpPos = 18;		// VLAN
+    }
+    else if( item->m_data[12] == 0x08 )
+    {
+        item->m_iIpPos = 14;		// IP
+    }
+
+    item->m_psttIp4Header = ( Ip4Header * )( item->m_data + item->m_iIpPos );
+    item->m_iIpHeaderLen = GetIpHeaderLength( item->m_psttIp4Header );
+    item->m_psttUdpHeader = ( UdpHeader * )( item->m_data + item->m_iIpPos + item->m_iIpHeaderLen );
+    item->m_pszUdpBody = ( char * )( item->m_data + item->m_iIpPos + item->m_iIpHeaderLen + 8 );
+    item->m_iUdpBodyLen = item->m_len - ( item->m_iIpPos + item->m_iIpHeaderLen + 8 );
+
+	PacketItem::GetKey( item->m_psttIp4Header->daddr, item->m_psttUdpHeader->dport, item->m_mapKey );
+}
+
+void PacketItem::GetKey( const char * pszIp, int iPort, std::string & strKey )
+{
+	uint32_t iIp = inet_addr( pszIp );
+	uint16_t sPort = htons( iPort );
+
+	GetKey( iIp, sPort, strKey );
+}
+
+/**
+ * @ingroup SipCallDump
+ * @brief 자료구조 저장용 키를 생성한다.
+ * @param iIp			IP 주소
+ * @param sPort		포트 번호
+ * @param strKey	키
+ */
+void PacketItem::GetKey( uint32_t iIp, uint16_t sPort, std::string & strKey )
+{
+	char	szKey[21];
+
+	snprintf( szKey, sizeof(szKey), "%x:%x", iIp, sPort );
+	strKey = szKey;
+}
+
 PacketQueue::PacketQueue()
 {
 
@@ -44,17 +106,20 @@ PacketQueue::~PacketQueue()
     m_que.swap(empty);
 }
 
-bool PacketQueue::push(int len, uint8_t *data)
+bool PacketQueue::push(pcap_t *psttPcap, struct pcap_pkthdr *psttHeader, uint8_t *data)
 {
     PacketItem *item;
 
-    item = new PacketItem(len, data);
-    if (!item) return false;
+    item = new PacketItem(psttPcap, psttHeader, data);
+    if (!item || !item->m_len) {
+        if (item && !item->m_len) delete item;
+        return false;
+    }
 
     m_que.push( item );
 
-    // std::cout << "[DEBUG] pushed item len(" << item->getLen() << ") queue size(" << m_que.size() << ")" << std::endl;
-	CLog::Print( LOG_DEBUG, "pushed item len(%d) queue size(%d)", item->getLen(), m_que.size() );
+    // std::cout << "[DEBUG] pushed item len(" << item->m_len << ") queue size(" << m_que.size() << ")" << std::endl;
+	CLog::Print( LOG_DEBUG, "pushed item len(%d) queue size(%d)", item->m_len, m_que.size() );
 
     return true;
 }
@@ -65,8 +130,8 @@ bool PacketQueue::push(PacketItem *item)
 
     m_que.push( item );
 
-    // std::cout << "[DEBUG] pushed item len(" << item->getLen() << ") queue size(" << m_que.size() << ")" << std::endl;
-	CLog::Print( LOG_DEBUG, "pushed packet-item len(%d) queue size(%d)", item->getLen(), m_que.size() );
+    // std::cout << "[DEBUG] pushed item len(" << item->m_len << ") queue size(" << m_que.size() << ")" << std::endl;
+	CLog::Print( LOG_DEBUG, "pushed packet-item len(%d) queue size(%d)", item->m_len, m_que.size() );
 
     return true;
 }
@@ -79,8 +144,8 @@ PacketItem* PacketQueue::pop()
 
     item = m_que.front();
 
-    // std::cout << "[DEBUG] poped item len(" << item->getLen() << ") queue size(" << m_que.size() << ")" << std::endl;
-	CLog::Print( LOG_DEBUG, "poped item len(%d) queue size(%d)", item->getLen(), m_que.size() );
+    // std::cout << "[DEBUG] poped item len(" << item->m_len << ") queue size(" << m_que.size() << ")" << std::endl;
+	CLog::Print( LOG_DEBUG, "poped item len(%d) queue size(%d)", item->m_len, m_que.size() );
 
     m_que.pop();
 
