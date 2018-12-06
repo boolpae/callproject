@@ -3,6 +3,8 @@
 #include "RtpMap.h"
 
 
+VoiceMap gclsVoiceMap;
+
 VoiceMap::VoiceMap()
 {
 

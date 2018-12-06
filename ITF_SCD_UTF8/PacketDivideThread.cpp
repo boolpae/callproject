@@ -42,8 +42,8 @@ THREAD_API PacketDivideThread( LPVOID lpParameter )
 	{
 		// gclsPacketQueue에서 패킷을 가져온다.
 		// SIP 인지 RTP 인지 판단하여 Type에 해당하는 queue에 저장
-
-		if ( item = gclsPacketQueue.pop() )
+		item = gclsPacketQueue.pop();
+		if ( item )
 		{
 			PacketItem::Init(item);	// 큐에 들어가는 item을 큐에 push하기 전에 필요한 정보들을 세팅한다.
 			if( IsRtpPacket( item->m_pszUdpBody, item->m_iUdpBodyLen ) )

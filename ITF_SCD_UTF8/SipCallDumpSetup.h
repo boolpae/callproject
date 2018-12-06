@@ -44,6 +44,7 @@ public:
 	int		m_iPacketSnapLen;					// pcap_open 의 2번째 인자값
 	int		m_iPacketReadTimeout;			// pcap_open 의 4번째 인자값
 	std::string m_strPacketFolder;	// pcap 파일을 저장할 폴더 full path
+	std::string m_strVoiceFolder;
 
 	// RTP
 	int		m_iRtpRecvTimeout;				// RTP 수신 timeout 시간 - 여기에 지정된 시간동안 RTP 가 수신되지 않았다면 통화 종료 처리한다.

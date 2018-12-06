@@ -43,10 +43,10 @@ THREAD_API SignalHandleThread( LPVOID lpParameter )
 	{
 		// gclsSignalPacketQueue에서 패킷을 가져온다.
 		// SIP패킷 분석 및 신규 호 시작 시엔 전용 쓰레드 생성
-
-		if ( item = gclsSignalPacketQueue.pop() )
+		item = gclsSignalPacketQueue.pop();
+		if ( item )
 		{
-            // 이미 처리할 item은 SIP Packet으로 간주해야한다.
+            // 처리할 item은 SIP Packet으로 간주해야한다.
 			gclsCallMap.Insert( item->m_psttPcap, &(item->m_sttHeader), item->m_data, item->m_pszUdpBody, item->m_iUdpBodyLen );
 			// 이 곳에서 처리한 item은 삭제한다.
 			delete item;

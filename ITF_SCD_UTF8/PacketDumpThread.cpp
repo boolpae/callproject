@@ -42,10 +42,10 @@ THREAD_API PacketDumpThread( LPVOID lpParameter )
 	struct pcap_pkthdr * psttHeader;
 	const		u_char * pszData;
 	int			n, iIpHeaderLen, iUdpBodyLen, iIpPos;
-	char		* pszUdpBody;
+	// char		* pszUdpBody;
 
 	Ip4Header		* psttIp4Header;	// IPv4 Header
-	UdpHeader		* psttUdpHeader;	// UDP Header
+	// UdpHeader		* psttUdpHeader;	// UDP Header
 	
 	CLog::Print( LOG_INFO, "%s is started", __FUNCTION__ );
 

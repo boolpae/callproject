@@ -23,7 +23,15 @@
 #include "TimeUtility.h"
 #include "PacketQueue.h"
 #include "VoiceMap.h"
+#include "SipCallDumpSetup.h"
+#include "TimeString.h"
+#include "SipCallMap.h"
 
+#include <fstream>
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 // #include "MemoryDebug.h"
 
@@ -47,17 +55,66 @@ THREAD_API VoiceHandleThread( LPVOID lpParameter )
 		return nullptr;
 	}
 
+    time_t	iTime;
+    struct tm	sttTm;
+    char szTemp[21];
+    uint32_t mask = inet_addr("192.168.0.0");
+
+    time( &iTime );
+
+    LocalTime( iTime, sttTm );
+
+    std::string strFileName_r;
+    std::string strFileName_l = gclsSetup.m_strVoiceFolder;
+    snprintf( szTemp, sizeof(szTemp), "%04d%02d%02d", sttTm.tm_year + 1900, sttTm.tm_mon + 1, sttTm.tm_mday );
+    CDirectory::AppendName( strFileName_l, szTemp );
+    CDirectory::Create( strFileName_l.c_str() );
+    
+    snprintf( szTemp, sizeof(szTemp), "%04d%02d%02d_", sttTm.tm_hour, sttTm.tm_min, sttTm.tm_sec );
+    CDirectory::AppendName( strFileName_l, szTemp );
+    strFileName_l.append( strCallId );
+    strFileName_r = strFileName_l;
+
+    strFileName_l.append( "_l.pcm" );
+    strFileName_r.append( "_r.pcm" );
+
+    std::ofstream pcmFile_l;
+    std::ofstream pcmFile_r;
+
+    pcmFile_l.open(strFileName_l.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
+    if (!pcmFile_l.is_open())
+    {
+        goto FUNC_END;
+    }
+
+    pcmFile_r.open(strFileName_r.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
+    if (!pcmFile_r.is_open())
+    {
+		pcmFile_l.close();
+        goto FUNC_END;
+    }
+
 	CLog::Print( LOG_INFO, "%s is started", __FUNCTION__ );
 
 	while( gbStop == false )
 	{
 		// gclsSignalPacketQueue에서 패킷을 가져온다.
 		// SIP패킷 분석 및 신규 호 시작 시엔 전용 쓰레드 생성
-
-		if ( item = que->pop() )
+		item = que->pop();
+		if ( item )
 		{
+			item->m_pszUdpBody;
+			item->m_iUdpBodyLen;
+			item->m_psttIp4Header->daddr;
 
-            // 이미 처리할 item은 SIP Packet으로 간주해야한다.
+			if ( mask != (item->m_psttIp4Header->daddr & mask) ) {
+				// 상담원 목소리 저장(right)
+			}
+			else
+			{
+				// 고객 목소리 저장(left)
+			}
+
 			// 이 곳에서 처리한 item은 삭제한다.
 			delete item;
 			item = nullptr;
@@ -67,10 +124,14 @@ THREAD_API VoiceHandleThread( LPVOID lpParameter )
 		{
 			MiliSleep(1);
 
-            // search Call-ID at RTPMAP
+            // search Call-ID at SIP Call MAP
+			if ( !gclsCallMap.FindCall(strCallId) ) break;
             // if not exist break.
 		}
 	}
+
+	pcmFile_r.close();
+	pcmFile_l.close();
 
 FUNC_END:
 

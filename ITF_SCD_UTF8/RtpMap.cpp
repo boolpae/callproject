@@ -202,3 +202,17 @@ bool CRtpMap::FindCallId( std::string &strKey, std::string &strCallId )
 
 	return bRes;
 }
+
+bool CRtpMap::FindCallId( std::string &strKey )
+{
+	RTP_MAP::iterator itMap;
+	bool bRes = false;
+
+	itMap = m_clsMap.find( strKey );
+	if( itMap != m_clsMap.end() )
+	{
+		bRes = true;
+	}
+
+	return bRes;
+}

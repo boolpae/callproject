@@ -41,7 +41,7 @@ CSipCallInfo::CSipCallInfo() : m_psttPcap(NULL), m_iInviteTime(0), m_iCancelTime
  */
 static void SetRtpInfo( CSdpMessage * pclsSdp, CSipRtpInfo & clsRtpInfo )
 {
-	bool bFound = false;
+	// bool bFound = false;
 	CSdpMedia * pclsMedia;
 
 	clsRtpInfo.m_strIp = pclsSdp->m_clsConnection.m_strAddr;
@@ -280,9 +280,6 @@ bool CSipCallMap::InsertInvite( pcap_t * psttPcap, struct pcap_pkthdr * psttHead
 
 		itMap = m_clsMap.find( strCallId );
 
-		// for ITF_SCD, pcap_dump_open()이 아닌 일반 file을 생성한다.
-		// 파일을 append + text 모드로 open 한다.
-
 		itMap->second.m_psttPcap = pcap_dump_open( psttPcap, strFileName.c_str() );
 		if( itMap->second.m_psttPcap == NULL )
 		{
@@ -425,4 +422,15 @@ void CSipCallMap::Erase( SIP_CALL_MAP::iterator & itMap )
 	pcap_dump_close( itMap->second.m_psttPcap );
 
 	m_clsMap.erase( itMap );
+}
+
+bool CSipCallMap::FindCall( std::string &strCallId )
+{
+	SIP_CALL_MAP::iterator itMap;
+	bool bRes = false;
+
+	itMap = m_clsMap.find( strCallId );
+	if( itMap != m_clsMap.end() ) bRes = true;
+
+	return bRes;
 }

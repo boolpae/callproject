@@ -21,7 +21,7 @@ LIB=-L../SipStack -lsipstack \
 %.o : %.cpp
 	$(CC) $(CFLAGS) -c $< $(INC)
 
-all: scd
+all: itf_crd
 
 #SRV_OBJ=PacketDumpThread.o PcapUtility.o SipCallDump.o SipCallMap.o PacketHeader.o \
 #	RtpMap.o SipCallDumpSetup.o g711.o
@@ -29,11 +29,11 @@ SRV_OBJ=PacketDivideThread.o PcapUtility.o SipCallDumpSetup.o VoicePacketDivideT
 	PacketDumpThread.o RtpMap.o SipCallMap.o g711.o PacketHeader.o SignalHandleThread.o \
 	VoiceHandleThread.o PacketQueue.o SipCallDump.o VoiceMap.o
 
-scd: $(SRV_OBJ)
+itf_crd: $(SRV_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(SRV_OBJ) $(INC) $(LIB)
 
 clean:
-	rm -f scd
+	rm -f itf_crd
 	rm -f *.o
 	rm -f core.*
 

@@ -53,6 +53,7 @@ bool CSipCallDumpSetup::Read( const char * pszFileName )
 
 	pclsElement->SelectElementTrimData( "Device", m_strPacketDevice );
 	pclsElement->SelectElementTrimData( "Folder", m_strPacketFolder );
+	pclsElement->SelectElementTrimData( "Record", m_strVoiceFolder );
 
 	if( m_strPacketDevice.empty() )
 	{
@@ -63,6 +64,12 @@ bool CSipCallDumpSetup::Read( const char * pszFileName )
 	if( m_strPacketFolder.empty() )
 	{
 		printf( "Setup PacketDump > Folder is not defined\n" );
+		return false;
+	}
+
+	if( m_strVoiceFolder.empty() )
+	{
+		printf( "Setup PacketDump > Record is not defined\n" );
 		return false;
 	}
 

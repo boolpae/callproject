@@ -75,6 +75,8 @@ public:
 	bool Delete( const char * pszCallId );
 	void DeleteAll( );
 
+	bool FindCall( std::string &strCallId );
+
 private:
 	bool InsertInvite( pcap_t * psttPcap, struct pcap_pkthdr * psttHeader, const u_char * pszData, CSipMessage * pclsMessage, CSdpMessage * pclsSdp );
 	bool InsertInviteResponse( struct pcap_pkthdr * psttHeader, const	u_char * pszData, CSipMessage * pclsMessage, CSdpMessage * pclsSdp );

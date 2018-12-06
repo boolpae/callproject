@@ -100,8 +100,9 @@ PacketQueue::~PacketQueue()
     PACKET_QUEUE empty;
     PacketItem *item;
 
-    while ( item = m_que.front() )
+    while ( !m_que.empty() )
     {
+        item = m_que.front();
         m_que.pop();
         delete item;
         item = nullptr;

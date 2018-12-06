@@ -44,13 +44,11 @@ THREAD_API VoicePacketDivideThread( LPVOID lpParameter )
 	while( gbStop == false )
 	{
 		// gclsVoicePacketQueue 패킷을 가져온다.
-
-		if ( item = gclsVoicePacketQueue.pop() )
+		item = gclsVoicePacketQueue.pop();
+		if ( item )
 		{
             // 이미 Queue에 저장된 패킷은 RTP(Voice) 패킷으로 간주하고 처리한다.
-
 			// 1. check RTPMAP - ip,port값을 이용하여 RTPMAP에 정보가 존재하는지 체크, 그리고 존재하지만 종료Flag가 있다면 폐기
-			item->m_mapKey;
 			if ( gclsRtpMap.FindCallId( item->m_mapKey, strCallId ) )
 			{
 				gclsVoiceMap.insert( strCallId, item );
