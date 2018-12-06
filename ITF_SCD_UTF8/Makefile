@@ -23,8 +23,11 @@ LIB=-L../SipStack -lsipstack \
 
 all: scd
 
-SRV_OBJ=PacketDumpThread.o PcapUtility.o SipCallDump.o SipCallMap.o PacketHeader.o \
-	RtpMap.o SipCallDumpSetup.o g711.o
+#SRV_OBJ=PacketDumpThread.o PcapUtility.o SipCallDump.o SipCallMap.o PacketHeader.o \
+#	RtpMap.o SipCallDumpSetup.o g711.o
+SRV_OBJ=PacketDivideThread.o PcapUtility.o SipCallDumpSetup.o VoicePacketDivideThread.o \
+	PacketDumpThread.o RtpMap.o SipCallMap.o g711.o PacketHeader.o SignalHandleThread.o \
+	VoiceHandleThread.o PacketQueue.o SipCallDump.o VoiceMap.o
 
 scd: $(SRV_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(SRV_OBJ) $(INC) $(LIB)

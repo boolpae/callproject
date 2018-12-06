@@ -22,6 +22,7 @@
 #include "ServerUtility.h"
 #include "TimeUtility.h"
 #include "PacketQueue.h"
+#include "VoiceMap.h"
 
 
 // #include "MemoryDebug.h"
@@ -29,13 +30,22 @@
 /**
  * @ingroup SipCallDump
  * @brief VoiceQueue로부터 item을 가져와 처리한다. 이 쓰레드는 Call-ID를 키로 생성되는 쓰레드이다.
+ *        큐에서 item을 가져와 decoding 및 파일에 저장한다.
  * @param lpParameter 
  * @returns 0 을 리턴한다.
  */
 THREAD_API VoiceHandleThread( LPVOID lpParameter )
 {
 	PacketItem *item = nullptr;
-    PacketQueue *que = (PacketQueue *)lpParameter;
+    PacketQueue *que = nullptr;
+	std::string strCallId( (char *)lpParameter );
+
+	que = gclsVoiceMap.createQueue( strCallId );
+
+	if ( !que ) {
+		// 큐 생성 실패, 전용 쓰레드 종료
+		return nullptr;
+	}
 
 	CLog::Print( LOG_INFO, "%s is started", __FUNCTION__ );
 
@@ -66,6 +76,8 @@ FUNC_END:
 
 	CLog::Print( LOG_INFO, "%s is stoped", __FUNCTION__ );
 
+	gclsVoiceMap.deleteQueue( strCallId );
+
 	return 0;
 }
 
@@ -74,7 +86,7 @@ FUNC_END:
  * @brief 패킷 덤프 쓰레드를 시작한다.
  * @returns 성공하면 true 를 리턴하고 실패하면 false 를 리턴한다.
  */
-bool StartVoiceHandleThread( PacketQueue* que )
+bool StartVoiceHandleThread( std::string &strCallId )
 {
-	return StartThread( "StartVoiceHandleThread", VoiceHandleThread, (void *)que );
+	return StartThread( "StartVoiceHandleThread", VoiceHandleThread, (void *)strCallId.c_str() );
 }

@@ -1,12 +1,13 @@
 #ifndef _PACKET_QUEUE_H_
 #define _PACKET_QUEUE_H_
 
-#include <stdint.h>
-#include <pcap.h>
+#include "PacketHeader.h"
 
+#include <string>
 #include <queue>
 
-#include "PacketHeader.h"
+#include <stdint.h>
+#include <pcap.h>
 
 class PacketItem {
     public:
@@ -29,8 +30,8 @@ class PacketItem {
     struct pcap_pkthdr m_sttHeader;
 
     private:
-    static void GetKey( const char * pszIp, int iPort, std::string & strKey );
-	static void GetKey( uint32_t iIp, uint16_t sPort, std::string & strKey );
+    // static void GetKey( const char * pszIp, int iPort, std::string & strKey );
+	// static void GetKey( uint32_t iIp, uint16_t sPort, std::string & strKey );
 
 };
 

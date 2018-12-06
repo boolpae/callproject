@@ -45,7 +45,7 @@ THREAD_API PacketDivideThread( LPVOID lpParameter )
 
 		if ( item = gclsPacketQueue.pop() )
 		{
-			PacketItem::Init(item);
+			PacketItem::Init(item);	// 큐에 들어가는 item을 큐에 push하기 전에 필요한 정보들을 세팅한다.
 			if( IsRtpPacket( item->m_pszUdpBody, item->m_iUdpBodyLen ) )
 			{
 				// gclsRtpMap.Insert( psttHeader, pszData, psttIp4Header, psttUdpHeader );

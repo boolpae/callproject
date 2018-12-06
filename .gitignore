@@ -1,0 +1,12 @@
+.*
+!.gitignore
+~*
+Debug/
+logs/
+bin/
+input/
+*.stt
+*.o
+*.a
+core
+

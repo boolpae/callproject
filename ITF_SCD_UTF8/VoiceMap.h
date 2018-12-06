@@ -15,8 +15,10 @@ class VoiceMap
 	VoiceMap();
 	virtual ~VoiceMap();
 
-	void insert(PacketItem *item);
-	bool erase();
+	PacketQueue *createQueue( std::string &strCallId );
+	void deleteQueue( std::string &strCallId );
+
+	void insert( std::string strCallId, PacketItem *item );
 
 	private:
 	VOICE_MAP m_clsMap;

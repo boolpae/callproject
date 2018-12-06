@@ -19,6 +19,24 @@ PacketQueue gclsSignalPacketQueue;
 // VoiceQueue
 PacketQueue gclsVoicePacketQueue;
 
+
+void GenKey( uint32_t iIp, uint16_t sPort, std::string & strKey )
+{
+	char	szKey[21];
+
+	snprintf( szKey, sizeof(szKey), "%x:%x", iIp, sPort );
+	strKey = szKey;
+}
+
+void GenKey( const char * pszIp, int iPort, std::string & strKey )
+{
+	uint32_t iIp = inet_addr( pszIp );
+	uint16_t sPort = htons( iPort );
+
+	GenKey( iIp, sPort, strKey );
+}
+
+
 PacketItem::PacketItem(pcap_t *psttPcap, struct pcap_pkthdr *psttHeader, uint8_t *data)
 {
     // std::hash< PacketItem* > hash_fn;
@@ -69,30 +87,7 @@ void PacketItem::Init(PacketItem *item)
     item->m_pszUdpBody = ( char * )( item->m_data + item->m_iIpPos + item->m_iIpHeaderLen + 8 );
     item->m_iUdpBodyLen = item->m_len - ( item->m_iIpPos + item->m_iIpHeaderLen + 8 );
 
-	PacketItem::GetKey( item->m_psttIp4Header->daddr, item->m_psttUdpHeader->dport, item->m_mapKey );
-}
-
-void PacketItem::GetKey( const char * pszIp, int iPort, std::string & strKey )
-{
-	uint32_t iIp = inet_addr( pszIp );
-	uint16_t sPort = htons( iPort );
-
-	GetKey( iIp, sPort, strKey );
-}
-
-/**
- * @ingroup SipCallDump
- * @brief 자료구조 저장용 키를 생성한다.
- * @param iIp			IP 주소
- * @param sPort		포트 번호
- * @param strKey	키
- */
-void PacketItem::GetKey( uint32_t iIp, uint16_t sPort, std::string & strKey )
-{
-	char	szKey[21];
-
-	snprintf( szKey, sizeof(szKey), "%x:%x", iIp, sPort );
-	strKey = szKey;
+	GenKey( item->m_psttIp4Header->daddr, item->m_psttUdpHeader->dport, item->m_mapKey );
 }
 
 PacketQueue::PacketQueue()
@@ -103,6 +98,15 @@ PacketQueue::PacketQueue()
 PacketQueue::~PacketQueue()
 {
     PACKET_QUEUE empty;
+    PacketItem *item;
+
+    while ( item = m_que.front() )
+    {
+        m_que.pop();
+        delete item;
+        item = nullptr;
+    }
+
     m_que.swap(empty);
 }
 

@@ -22,6 +22,8 @@
 #include "ServerUtility.h"
 #include "TimeUtility.h"
 #include "PacketQueue.h"
+#include "RtpMap.h"
+#include "VoiceMap.h"
 
 
 // #include "MemoryDebug.h"
@@ -48,10 +50,15 @@ THREAD_API VoicePacketDivideThread( LPVOID lpParameter )
             // 이미 Queue에 저장된 패킷은 RTP(Voice) 패킷으로 간주하고 처리한다.
 
 			// 1. check RTPMAP - ip,port값을 이용하여 RTPMAP에 정보가 존재하는지 체크, 그리고 존재하지만 종료Flag가 있다면 폐기
-			// if ( gclsRtpMap.FindCallId(item->m_mapKey, strCallId) )
-			// {
-
-			// }
+			item->m_mapKey;
+			if ( gclsRtpMap.FindCallId( item->m_mapKey, strCallId ) )
+			{
+				gclsVoiceMap.insert( strCallId, item );
+			}
+			else
+			{
+				delete item;
+			}
 		}
 		else
 		{
