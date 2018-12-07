@@ -37,6 +37,8 @@
 
 // #include "MemoryDebug.h"
 
+#define RTP_HEAD_SIZE 12
+
 /**
  * @ingroup SipCallDump
  * @brief VoiceQueue로부터 item을 가져와 처리한다. 이 쓰레드는 Call-ID를 키로 생성되는 쓰레드이다.
@@ -98,6 +100,8 @@ THREAD_API VoiceHandleThread( LPVOID lpParameter )
 
 	CLog::Print( LOG_INFO, "%s is started", __FUNCTION__ );
 	short linearData[1024];
+	int vdLen;
+	unsigned char *vceData = nullptr;
 
 	while( gbStop == false )
 	{
@@ -106,8 +110,10 @@ THREAD_API VoiceHandleThread( LPVOID lpParameter )
 		item = que->pop();
 		if ( item )
 		{
-			for (int i=0; i<item->m_iUdpBodyLen; i++) {
-				linearData[i] = alaw2linear((unsigned char)item->m_pszUdpBody[i]);
+			vdLen = item->m_iUdpBodyLen - RTP_HEAD_SIZE;
+			vceData = (unsigned char *)item->m_pszUdpBody + RTP_HEAD_SIZE;
+			for (int i=0; i<vdLen; i++) {
+				linearData[i] = alaw2linear(vceData[i]);
 			}
 
 			if ( mask != (item->m_psttIp4Header->daddr & mask) ) {
