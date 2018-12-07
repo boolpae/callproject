@@ -88,6 +88,7 @@ THREAD_API VoiceHandleThread( LPVOID lpParameter )
     pcmFile_l.open(strFileName_l.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
     if (!pcmFile_l.is_open())
     {
+		CLog::Print( LOG_ERROR, "%s(%s) failed to open file(%s)", __FUNCTION__, strCallId.c_str(), strFileName_l.c_str() );
         goto FUNC_END;
     }
 
@@ -95,10 +96,11 @@ THREAD_API VoiceHandleThread( LPVOID lpParameter )
     if (!pcmFile_r.is_open())
     {
 		pcmFile_l.close();
+		CLog::Print( LOG_ERROR, "%s(%s) failed to open file(%s)", __FUNCTION__, strCallId.c_str(), strFileName_r.c_str() );
         goto FUNC_END;
     }
 
-	CLog::Print( LOG_INFO, "%s is started", __FUNCTION__ );
+	CLog::Print( LOG_INFO, "%s(%s) is started", __FUNCTION__, strCallId.c_str() );
 	short linearData[1024];
 	int vdLen;
 	unsigned char *vceData = nullptr;
@@ -146,7 +148,7 @@ THREAD_API VoiceHandleThread( LPVOID lpParameter )
 
 FUNC_END:
 
-	CLog::Print( LOG_INFO, "%s is stoped", __FUNCTION__ );
+	CLog::Print( LOG_INFO, "%s(%s) is stoped", __FUNCTION__, strCallId.c_str() );
 
 	gclsVoiceMap.deleteQueue( strCallId );
 
