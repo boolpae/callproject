@@ -25,6 +25,8 @@
 
 CSipCallMap gclsCallMap;
 
+bool StartVoiceHandleThread( std::string &strCallId );	// VoiceHandleThread.cpp for ITF_CRD
+
 CSipRtpInfo::CSipRtpInfo() : m_iPort(0)
 {
 }
@@ -259,6 +261,11 @@ bool CSipCallMap::InsertInvite( pcap_t * psttPcap, struct pcap_pkthdr * psttHead
 		SetRtpInfo( pclsSdp, clsCallInfo.m_clsFromRtp );
 
 		m_clsMap.insert( SIP_CALL_MAP::value_type( strCallId, clsCallInfo ) );
+
+		if ( !StartVoiceHandleThread( strCallId ) )
+		{
+			CLog::Print( LOG_ERROR, "%s failed to start VoiceHandleThread(%s) error", __FUNCTION__, strCallId.c_str() );
+		}
 
 		time_t	iTime;
 		struct tm	sttTm;

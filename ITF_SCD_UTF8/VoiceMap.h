@@ -20,6 +20,8 @@ class VoiceMap
 
 	void insert( std::string strCallId, PacketItem *item );
 
+	int getSize() { return m_clsMap.size(); }
+
 	private:
 	VOICE_MAP m_clsMap;
 };

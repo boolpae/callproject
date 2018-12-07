@@ -59,13 +59,13 @@ PacketItem::PacketItem(pcap_t *psttPcap, struct pcap_pkthdr *psttHeader, uint8_t
     // m_hash = hash_fn( this );
 
     // std::cout << "[DEBUG] maked item(len:" << m_len <<")" << std::endl;
-	CLog::Print( LOG_DEBUG, "maked item(len:%d)", m_len );
+	// CLog::Print( LOG_DEBUG, "maked item(len:%d)", m_len );
 }
 
 PacketItem::~PacketItem()
 {
     // std::cout << "[DEBUG] erased item(len:" << m_len << ")" << std::endl;
-	CLog::Print( LOG_DEBUG, "erased item(len:%d)", m_len );
+	// CLog::Print( LOG_DEBUG, "erased item(len:%d)", m_len );
     delete m_data;
     m_data = nullptr;
 }
@@ -124,7 +124,7 @@ bool PacketQueue::push(pcap_t *psttPcap, struct pcap_pkthdr *psttHeader, uint8_t
     m_que.push( item );
 
     // std::cout << "[DEBUG] pushed item len(" << item->m_len << ") queue size(" << m_que.size() << ")" << std::endl;
-	CLog::Print( LOG_DEBUG, "pushed item len(%d) queue size(%d)", item->m_len, m_que.size() );
+	// CLog::Print( LOG_DEBUG, "pushed item len(%d) queue size(%d)", item->m_len, m_que.size() );
 
     return true;
 }
@@ -136,7 +136,7 @@ bool PacketQueue::push(PacketItem *item)
     m_que.push( item );
 
     // std::cout << "[DEBUG] pushed item len(" << item->m_len << ") queue size(" << m_que.size() << ")" << std::endl;
-	CLog::Print( LOG_DEBUG, "pushed packet-item len(%d) queue size(%d)", item->m_len, m_que.size() );
+	// CLog::Print( LOG_DEBUG, "pushed packet-item len(%d) queue size(%d)", item->m_len, m_que.size() );
 
     return true;
 }
@@ -150,7 +150,7 @@ PacketItem* PacketQueue::pop()
     item = m_que.front();
 
     // std::cout << "[DEBUG] poped item len(" << item->m_len << ") queue size(" << m_que.size() << ")" << std::endl;
-	CLog::Print( LOG_DEBUG, "poped item len(%d) queue size(%d)", item->m_len, m_que.size() );
+	// CLog::Print( LOG_DEBUG, "poped item len(%d) queue size(%d)", item->m_len, m_que.size() );
 
     m_que.pop();
 

@@ -54,7 +54,10 @@ int ServiceMain( )
 	StartPacketDumpThread();
 
 	// for ITF_SCD
-	StartPacketDivideThread();
+	StartPacketDivideThread();	// Main Queue에서 item을 SIGNAL, RTP 로 분리하여 각 Queue로 나눈다.
+	StartSignalHandleThread();	// Signal Queue 내 item을 처리한다.
+	StartVoicePacketDivideThread();	// RTP Queue 내 item을 Call-ID 별 Queue로 다시 나누어 분배한다.
+	StartQueueMonitorThread();	// 어플리케이션에서 사용되는 Queue, Map의 현재 사이즈에 대한 모니터링
 
 	while( gbStop == false )
 	{

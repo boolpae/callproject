@@ -36,4 +36,13 @@ bool StartPacketDumpThread( );
 // PacketDivideThread.cpp for ITF_SCD
 bool StartPacketDivideThread( );
 
+// SignalHandleThread.cpp for ITF_SCD
+bool StartSignalHandleThread( );
+
+// VoicePacketDivideThread.cpp for ITF_SCD
+bool StartVoicePacketDivideThread( );
+
+// QueueMonitorThread.cpp for ITF_SCD
+bool StartQueueMonitorThread( );
+
 #endif

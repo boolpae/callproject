@@ -27,7 +27,7 @@ all: itf_crd
 #	RtpMap.o SipCallDumpSetup.o g711.o
 SRV_OBJ=PacketDivideThread.o PcapUtility.o SipCallDumpSetup.o VoicePacketDivideThread.o \
 	PacketDumpThread.o RtpMap.o SipCallMap.o g711.o PacketHeader.o SignalHandleThread.o \
-	VoiceHandleThread.o PacketQueue.o SipCallDump.o VoiceMap.o
+	VoiceHandleThread.o PacketQueue.o SipCallDump.o VoiceMap.o QueueMonitorThread.o
 
 itf_crd: $(SRV_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(SRV_OBJ) $(INC) $(LIB)
