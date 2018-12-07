@@ -120,12 +120,12 @@ THREAD_API VoiceHandleThread( LPVOID lpParameter )
 
 			if ( mask != (item->m_psttIp4Header->daddr & mask) ) {
 				// 상담원 목소리 저장(right)
-				pcmFile_r.write((const char*)linearData, item->m_iUdpBodyLen*(sizeof(short)));
+				pcmFile_r.write((const char*)linearData, vdLen*(sizeof(short)));
 			}
 			else
 			{
 				// 고객 목소리 저장(left)
-				pcmFile_l.write((const char*)linearData, item->m_iUdpBodyLen*(sizeof(short)));
+				pcmFile_l.write((const char*)linearData, vdLen*(sizeof(short)));
 			}
 
 			// 이 곳에서 처리한 item은 삭제한다.
