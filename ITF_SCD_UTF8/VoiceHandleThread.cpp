@@ -103,7 +103,7 @@ THREAD_API VoiceHandleThread( LPVOID lpParameter )
 	CLog::Print( LOG_INFO, "%s(%s) is started", __FUNCTION__, strCallId.c_str() );
 	short linearData[1024];
 	int vdLen;
-	unsigned char *vceData = nullptr;
+	unsigned char *vceData;
 
 	while( gbStop == false )
 	{
