@@ -5,7 +5,7 @@
 # start date : 2013/03/26
 
 CC=g++
-CFLAGS=-Wall -O2 -D_REENTRANT -g #-pg
+CFLAGS=-Wall -O2 -D_REENTRANT -g -std=c++11 #-pg
 
 # 32bit or 64bit OS
 SYSTEM_BIT=$(shell getconf LONG_BIT)
