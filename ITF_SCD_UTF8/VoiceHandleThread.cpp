@@ -26,12 +26,14 @@
 #include "SipCallDumpSetup.h"
 #include "TimeString.h"
 #include "SipCallMap.h"
+#include "g711.h"
 
 #include <fstream>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
 
 // #include "MemoryDebug.h"
 
@@ -58,7 +60,7 @@ THREAD_API VoiceHandleThread( LPVOID lpParameter )
     time_t	iTime;
     struct tm	sttTm;
     char szTemp[21];
-    uint32_t mask = inet_addr("192.168.0.0");
+    uint32_t mask = inet_addr(gclsSetup.m_strCSMask.c_str());
 
     time( &iTime );
 
@@ -95,6 +97,7 @@ THREAD_API VoiceHandleThread( LPVOID lpParameter )
     }
 
 	CLog::Print( LOG_INFO, "%s is started", __FUNCTION__ );
+	short linearData[1024];
 
 	while( gbStop == false )
 	{
@@ -103,16 +106,18 @@ THREAD_API VoiceHandleThread( LPVOID lpParameter )
 		item = que->pop();
 		if ( item )
 		{
-			item->m_pszUdpBody;
-			item->m_iUdpBodyLen;
-			item->m_psttIp4Header->daddr;
+			for (int i=0; i<item->m_iUdpBodyLen; i++) {
+				linearData[i] = alaw2linear((unsigned char)item->m_pszUdpBody[i]);
+			}
 
 			if ( mask != (item->m_psttIp4Header->daddr & mask) ) {
 				// 상담원 목소리 저장(right)
+				pcmFile_r.write((const char*)linearData, item->m_iUdpBodyLen*(sizeof(short)));
 			}
 			else
 			{
 				// 고객 목소리 저장(left)
+				pcmFile_l.write((const char*)linearData, item->m_iUdpBodyLen*(sizeof(short)));
 			}
 
 			// 이 곳에서 처리한 item은 삭제한다.

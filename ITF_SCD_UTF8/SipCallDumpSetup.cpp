@@ -54,6 +54,7 @@ bool CSipCallDumpSetup::Read( const char * pszFileName )
 	pclsElement->SelectElementTrimData( "Device", m_strPacketDevice );
 	pclsElement->SelectElementTrimData( "Folder", m_strPacketFolder );
 	pclsElement->SelectElementTrimData( "Record", m_strVoiceFolder );
+	pclsElement->SelectElementTrimData( "CounselorMask", m_strCSMask );
 
 	if( m_strPacketDevice.empty() )
 	{
@@ -70,6 +71,12 @@ bool CSipCallDumpSetup::Read( const char * pszFileName )
 	if( m_strVoiceFolder.empty() )
 	{
 		printf( "Setup PacketDump > Record is not defined\n" );
+		return false;
+	}
+
+	if( m_strCSMask.empty() )
+	{
+		printf( "Setup PacketDump > IP-Mask is not defined\n" );
 		return false;
 	}
 
