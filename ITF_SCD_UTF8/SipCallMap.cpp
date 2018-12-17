@@ -126,6 +126,7 @@ bool CSipCallMap::Insert( pcap_t * psttPcap, struct pcap_pkthdr * psttHeader, co
 		{
 			CSdpMessage clsSdp;
 
+			CLog::Print( LOG_DEBUG, "(%s) From(%s), To(%s)", clsMessage.m_clsCallId.m_strName.c_str(), clsMessage.m_clsFrom.m_clsUri.m_strUser.c_str(), clsMessage.m_clsTo.m_clsUri.m_strUser.c_str() );
 			if( GetSdp( clsMessage, clsSdp ) == false )
 			{
 				CLog::Print( LOG_ERROR, "%s INVITE no SDP", __FUNCTION__ );

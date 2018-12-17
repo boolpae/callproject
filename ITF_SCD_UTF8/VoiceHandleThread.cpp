@@ -39,6 +39,61 @@
 
 #define RTP_HEAD_SIZE 12
 
+#define WAVE_FORMAT_UNKNOWN      0X0000;
+#define WAVE_FORMAT_PCM          0X0001;
+#define WAVE_FORMAT_MS_ADPCM     0X0002;
+#define WAVE_FORMAT_IEEE_FLOAT   0X0003;
+#define WAVE_FORMAT_ALAW         0X0006;
+#define WAVE_FORMAT_MULAW        0X0007;
+#define WAVE_FORMAT_IMA_ADPCM    0X0011;
+#define WAVE_FORMAT_YAMAHA_ADPCM 0X0016;
+#define WAVE_FORMAT_GSM          0X0031;
+#define WAVE_FORMAT_ITU_ADPCM    0X0040;
+#define WAVE_FORMAT_MPEG         0X0050;
+#define WAVE_FORMAT_EXTENSIBLE   0XFFFE;
+
+typedef struct
+{
+	unsigned char ChunkID[4];    // Contains the letters "RIFF" in ASCII form
+	unsigned int ChunkSize;      // This is the size of the rest of the chunk following this number
+	unsigned char Format[4];     // Contains the letters "WAVE" in ASCII form
+} RIFF;
+
+//-------------------------------------------
+// [Channel]
+// - streo     : [left][right]
+// - 3 channel : [left][right][center]
+// - quad      : [front left][front right][rear left][reat right]
+// - 4 channel : [left][center][right][surround]
+// - 6 channel : [left center][left][center][right center][right][surround]
+//-------------------------------------------
+typedef struct
+{
+	unsigned char  ChunkID[4];    // Contains the letters "fmt " in ASCII form
+	unsigned int   ChunkSize;     // 16 for PCM.  This is the size of the rest of the Subchunk which follows this number.
+	unsigned short AudioFormat;   // PCM = 1
+	unsigned short NumChannels;   // Mono = 1, Stereo = 2, etc.
+	unsigned int   SampleRate;    // 8000, 44100, etc.
+	unsigned int   AvgByteRate;   // SampleRate * NumChannels * BitsPerSample/8
+	unsigned short BlockAlign;    // NumChannels * BitsPerSample/8
+	unsigned short BitPerSample;  // 8 bits = 8, 16 bits = 16, etc
+} FMT;
+
+
+typedef struct
+{
+	char          ChunkID[4];    // Contains the letters "data" in ASCII form
+	unsigned int  ChunkSize;     // NumSamples * NumChannels * BitsPerSample/8
+} DATA;
+
+
+typedef struct
+{
+	RIFF Riff;
+	FMT	 Fmt;
+	DATA Data;
+} WAVE_HEADER;
+
 /**
  * @ingroup SipCallDump
  * @brief VoiceQueue로부터 item을 가져와 처리한다. 이 쓰레드는 Call-ID를 키로 생성되는 쓰레드이다.
@@ -64,6 +119,9 @@ THREAD_API VoiceHandleThread( LPVOID lpParameter )
     char szTemp[21];
     uint32_t mask = inet_addr(gclsSetup.m_strCSMask.c_str());
 
+	WAVE_HEADER wHdr;
+	uint64_t totalVoiceDataLen[2];
+
     time( &iTime );
 
     LocalTime( iTime, sttTm );
@@ -79,11 +137,30 @@ THREAD_API VoiceHandleThread( LPVOID lpParameter )
     strFileName_l.append( strCallId );
     strFileName_r = strFileName_l;
 
-    strFileName_l.append( "_l.pcm" );
-    strFileName_r.append( "_r.pcm" );
+    strFileName_l.append( "_l.wav" );
+    strFileName_r.append( "_r.wav" );
 
     std::ofstream pcmFile_l;
     std::ofstream pcmFile_r;
+
+	memcpy(&wHdr.Riff.ChunkID, "RIFF", 4);
+	wHdr.Riff.ChunkSize = 0;
+	memcpy(&wHdr.Riff.Format, "WAVE", 4);
+
+	memcpy(&wHdr.Fmt.ChunkID, "fmt ", 4);
+	wHdr.Fmt.ChunkSize = 16;
+	wHdr.Fmt.AudioFormat = 1;
+	wHdr.Fmt.NumChannels = 1;
+	wHdr.Fmt.SampleRate = 8000;
+	wHdr.Fmt.AvgByteRate = 8000 * 1 * 16 / 8 ;
+	wHdr.Fmt.BlockAlign = 1 * 16 / 8;
+	wHdr.Fmt.BitPerSample = 16;
+
+	memcpy(&wHdr.Data.ChunkID, "data", 4);
+	wHdr.Data.ChunkSize = 0;
+
+	totalVoiceDataLen[0] = 0;
+	totalVoiceDataLen[1] = 0;
 
     pcmFile_l.open(strFileName_l.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
     if (!pcmFile_l.is_open())
@@ -100,9 +177,13 @@ THREAD_API VoiceHandleThread( LPVOID lpParameter )
         goto FUNC_END;
     }
 
+	pcmFile_l.write((const char*)&wHdr, sizeof(WAVE_HEADER));
+	pcmFile_r.write((const char*)&wHdr, sizeof(WAVE_HEADER));
+
 	CLog::Print( LOG_INFO, "%s(%s) is started", __FUNCTION__, strCallId.c_str() );
 	short linearData[1024];
 	int vdLen;
+	int vdRtLen;
 	unsigned char *vceData;
 
 	while( gbStop == false )
@@ -114,18 +195,21 @@ THREAD_API VoiceHandleThread( LPVOID lpParameter )
 		{
 			vdLen = item->m_iUdpBodyLen - RTP_HEAD_SIZE;
 			vceData = (unsigned char *)item->m_pszUdpBody + RTP_HEAD_SIZE;
+			vdRtLen = vdLen * sizeof(short);
 			for (int i=0; i<vdLen; i++) {
 				linearData[i] = alaw2linear(vceData[i]);
 			}
 
 			if ( mask != (item->m_psttIp4Header->daddr & mask) ) {
 				// 상담원 목소리 저장(right)
-				pcmFile_r.write((const char*)linearData, vdLen*(sizeof(short)));
+				pcmFile_r.write((const char*)linearData, vdRtLen);
+				totalVoiceDataLen[0] += vdRtLen;
 			}
 			else
 			{
 				// 고객 목소리 저장(left)
-				pcmFile_l.write((const char*)linearData, vdLen*(sizeof(short)));
+				pcmFile_l.write((const char*)linearData, vdRtLen);
+				totalVoiceDataLen[1] += vdRtLen;
 			}
 
 			// 이 곳에서 처리한 item은 삭제한다.
@@ -143,7 +227,20 @@ THREAD_API VoiceHandleThread( LPVOID lpParameter )
 		}
 	}
 
+	wHdr.Riff.ChunkSize = totalVoiceDataLen[0] + sizeof(WAVE_HEADER) - 8;
+	wHdr.Data.ChunkSize = totalVoiceDataLen[0];
+
+	pcmFile_r.seekp(0);
+	pcmFile_r.write((const char*)&wHdr, sizeof(WAVE_HEADER));
+
 	pcmFile_r.close();
+
+	wHdr.Riff.ChunkSize = totalVoiceDataLen[1] + sizeof(WAVE_HEADER) - 8;
+	wHdr.Data.ChunkSize = totalVoiceDataLen[1];
+
+	pcmFile_l.seekp(0);
+	pcmFile_l.write((const char*)&wHdr, sizeof(WAVE_HEADER));
+
 	pcmFile_l.close();
 
 FUNC_END:
